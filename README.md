@@ -36,11 +36,11 @@ Inserting rows from Bigtable to Solr for Full Index Search
   -Dbigtable.instanceID=<BigtableInstanceId> \
   -DinputFile=gs://<InputFilePath> \
   -Dbigtable.table=<TableName> \
-  -Dheaders="Id, Release_Year, Title, Origin/Ethnicity, Genre, Wiki_Page, Plot"
+  -Dheaders="Id, Title, Origin/Ethnicity, Genre, Wiki_Page, Plot"
   ```
   
  4. Confirm the data is successfully inserted by running: 
-   `cbt read <BigtableTableIdK> count=10`
+   `cbt read <BigtableTableId> count=10`
 
 ## Create Solr Cluster: 
 
@@ -54,7 +54,7 @@ Inserting rows from Bigtable to Solr for Full Index Search
       --num-masters=3
       ... other flags
       ```
-**Note**: It is important to add num-masters=3 so that Dataproc will be created in high availability mode with Zookeeper preinstalled. The Solr will then run with Zookeeper. Otherwise, there won’t be a Zookeeper port to run the Solr in SolrCloud mode. By default, the Dataproc cluster will provision 2 workers node which are necessary to run some underlying services. 
+**Note**: It is important to add num-masters=3 so that Dataproc will be created in high availability mode with Zookeeper preinstalled. The Solr will then run with Zookeeper. Otherwise, there won’t be a Zookeeper port to run the Solr in SolrCloud mode. By default, the Dataproc cluster will provision 2 worker nodes which are necessary to run some underlying services. 
 
 2. Create Solr Core 
     - SSH into one of the the master worker
@@ -64,14 +64,15 @@ Inserting rows from Bigtable to Solr for Full Index Search
     - Select the core in the core selector 
 
 3. Setup Dataflow temp location bucket 
-    - `gsutil mb gs://bigtable-to-solr2/`
+    - `gsutil mb gs://<bucket-name>/`
     - Create a folder named “temp” inside this bucket 
     - The Dataflow service account should be automatically enabled when you turn on the Dataflow API. To learn more about the Dataflow service account, check out [here](https://cloud.google.com/dataflow/docs/concepts/security-and-permissions#service_account). 
 
 
 ## Run the Dataflow Job: 
 
-1. Specify the SolrConnection to your Solr Cluster in config.properties. 
+1. Clone this repository. 
+2. Specify the SolrConnection to your Solr Cluster in config.properties. To find out your SolrConnnection, enter `./solr status` in `/usr/lib/solr/bin`. Enter the value of Zookeeper.
 
    - `eg: solrConnection=cluster-m-0:2181,cluster-m-1:2181,cluster-m-2:2181/solr`
 
@@ -83,13 +84,13 @@ Inserting rows from Bigtable to Solr for Full Index Search
   --project=<project-id> \
   --region=<region-name> \
   --runner=DataflowRunner \
-  --bigtableProjectId=project-id  \
-  --bigtableInstanceId=instance-name \
-  --bigtableTableId=table-name \
+  --bigtableProjectId=<project-id>  \
+  --bigtableInstanceId=<instance-name> \
+  --bigtableTableId=<table-name> \
   --solrCollections=<cluster1,cluster2,cluster3>
 ```
 3. To start searching your documents on SolrCloud UI, commit them by running this url: 
-	- `<SolrUI URL>solr/<cluser-name>/update?commit=true`
+	- `<SolrUI URL>/solr/<cluser-name>/update?commit=true`
 
 eg: `https://ldmmvtdd6verrcasd62os6nl62e-dot-us-west1.dataproc.googleusercontent.com/solr/webpages/update?commit=true`
  
